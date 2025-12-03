@@ -7,7 +7,7 @@ print('openai?', bool(os.getenv('OPENAI_API_KEY')))
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-with open("test_selfie.png", "rb") as f:
+with open("test_selfie.jpg", "rb") as f:
     img_bytes = f.read()
 
 img_b64 = base64.b64encode(img_bytes).decode("utf-8")
@@ -34,7 +34,7 @@ resp = client.chat.completions.create(
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/png;base64,{img_b64}"
+                        "url": f"data:image/jpeg;base64,{img_b64}"
                     },
                 },
             ],

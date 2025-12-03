@@ -6,16 +6,14 @@ import os
 import io
 import tempfile
 import replicate
+from replicate.exceptions import ModelError
 
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if REPLICATE_API_TOKEN:
     os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
 
 PROMPT = (
-    "crude police composite sketch of the person in the reference image, "
-    "black and white, pencil on rough paper, uneven line quality, "
-    "inaccurate proportions, amateur witness drawing, simplified shading, "
-    "low detail, slightly distorted facial features, grainy pencil texture, monochrome"
+    "loose and childish composite sketch, rough lineart, uneven pencil strokes, simplified facial geometry, black and white pencil"
 )
 
 def generate_sketch_from_bytes(image_bytes: bytes) -> str:
@@ -29,14 +27,24 @@ def generate_sketch_from_bytes(image_bytes: bytes) -> str:
         # Open the file for Replicate - pass file object directly
         with open(tmp_file_path, 'rb') as f:
             output = replicate.run(
-                "adirik/t2i-adapter-sdxl-sketch:3a14a915b013decb6ab672115c8bced7c088df86c2ddd0a89433717b9ec7d927",
+                "fofr/sdxl-multi-controlnet-lora:89eb212b3d1366a83e949c12a4b45dfe6b6b313b594cb8268e864931ac9ffb16",
                 input={
                     "image": f,
+                    "control_type": "lineart",
                     "prompt": PROMPT,
-                    "num_inference_steps": 20,
-                    "guidance_scale": 6,
+                    "style_strength": 0.7,
+                    "safety_tolerance": 2,  # Try to reduce NSFW filtering (0-6, higher = less strict)
                 },
             )
+    except ModelError as e:
+        # Handle NSFW detection or other model errors
+        error_msg = str(e)
+        if "NSFW" in error_msg:
+            raise ValueError(
+                "The image was flagged by content moderation. "
+                "This can happen with certain images. Please try a different image or try again."
+            )
+        raise
     finally:
         # Clean up temporary file
         os.unlink(tmp_file_path)
