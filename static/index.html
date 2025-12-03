@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Memory Sketch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 1rem; max-width: 480px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+    p { margin-bottom: 0.75rem; }
+    .btn { padding: 0.75rem 1rem; border-radius: 999px; border: none; background: #111; color: #fff; width: 100%; font-size: 1rem; }
+    .card { margin-top: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1px solid #ddd; }
+    img { max-width: 100%; border-radius: 0.75rem; display: block; margin-bottom: 0.5rem; }
+    #status { font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <h1>Memory Sketch</h1>
+  <p>Upload a selfie and we’ll generate a rough sketch and a mistaken backstory.</p>
+
+  <form id="sketchForm">
+    <input type="file" id="fileInput" accept="image/*" required>
+    <button type="submit" class="btn">Generate</button>
+  </form>
+
+  <div id="status" class="card" style="display:none;"></div>
+
+  <div id="result" class="card" style="display:none;">
+    <img id="sketchImage" alt="Sketch result">
+    <p id="backstoryText"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('sketchForm');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const sketchImg = document.getElementById('sketchImage');
+    const backstoryEl = document.getElementById('backstoryText');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files[0]) return;
+
+      statusEl.style.display = 'block';
+      statusEl.textContent = 'The artist is sketching you from memory...';
+      resultEl.style.display = 'none';
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/memory-sketch', {  // relative to same server
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          throw new Error('Server error: ' + res.status);
+        }
+
+        const data = await res.json();
+        sketchImg.src = data.sketch_url;
+        backstoryEl.textContent = data.backstory;
+
+        statusEl.style.display = 'none';
+        resultEl.style.display = 'block';
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

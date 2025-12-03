@@ -1,12 +1,10 @@
-"""
-Main entry point for the memory_sketch application.
-"""
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+
 from services.images import generate_sketch_from_bytes
 from services.backstories import generate_backstory_from_bytes
 
@@ -14,14 +12,22 @@ load_dotenv()
 
 app = FastAPI()
 
-# CORS – adjust origins as needed
+# If frontend and backend are same origin, you can later tighten CORS or even remove it
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten later
+    allow_origins=["*"],  # tighten later if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (including index.html)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", response_class=HTMLResponse)
+def root():
+    with open(os.path.join("static", "index.html"), "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.get("/health")
 def health():
@@ -31,8 +37,6 @@ def health():
 async def memory_sketch(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
-
-        # You *could* parallelize these with asyncio.gather, but serialized is fine for now
         sketch_url = generate_sketch_from_bytes(image_bytes)
         backstory = generate_backstory_from_bytes(image_bytes)
 
@@ -44,6 +48,8 @@ async def memory_sketch(file: UploadFile = File(...)):
             }
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 
