@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 # Load environment variables BEFORE importing services
 load_dotenv()
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from services.images import generate_sketch_from_bytes
@@ -37,21 +37,15 @@ def health():
 
 @app.post("/memory-sketch")
 async def memory_sketch(file: UploadFile = File(...)):
-    try:
-        image_bytes = await file.read()
-        sketch_url = generate_sketch_from_bytes(image_bytes)
-        backstory = generate_backstory_from_bytes(image_bytes)
+    image_bytes = await file.read()
 
-        return JSONResponse(
-            {
-                "sketch_url": sketch_url,
-                "backstory": backstory,
-                "mode": "replicate+llm",
-            }
-        )
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    sketch_url = generate_sketch_from_bytes(image_bytes)
+    backstory = generate_backstory_from_bytes(image_bytes)
+
+    return {
+        "sketch_url": sketch_url,
+        "backstory": backstory,
+        "mode": "replicate+llm",
+    }
 
 
