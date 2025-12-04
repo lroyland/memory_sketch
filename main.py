@@ -45,7 +45,7 @@ async def memory_sketch(file: UploadFile = File(...)):
     return {
         "sketch_url": sketch_url,
         "backstory": backstory,
-        "mode": "replicate+llm",
+        "mode": "gpt-image-1",
     }
 
 

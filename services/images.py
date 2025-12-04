@@ -1,102 +1,93 @@
-"""
-Image-related services.
-"""
-
 import os
-import io
-import tempfile
-import replicate
-from replicate.exceptions import ModelError
-from PIL import Image
-import requests
 import base64
+import json
+import requests
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
-if REPLICATE_API_TOKEN:
-    os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-PROMPT = (
-    "black and white pencil sketch, monochrome grayscale, rough amateur police composite sketch, "
-    "uneven pencil lines, basic shading, simplified features, witness drawing style, "
-    "forensic composite, black and white only, no color"
-)
+# ----- PROMPTS -----
 
-NEGATIVE_PROMPT = (
-    "color, colorful, colored, child, children, childish, kid, kids, "
-    "clean lines, smooth shading, photorealistic, professional, detailed, "
-    "perfect proportions, polished, refined, artistic, vibrant colors, color palette"
-)
+SKETCH_USER_PROMPT = """
+Convert this portrait into a black-and-white, rough, amateur police composite sketch.
+Style requirements:
+- Hand-drawn pencil look
+- Uneven sketchy lines
+- Imperfect proportions
+- No grayscale shading, only pencil lines
+- Not an exact likeness; slightly off is good
+"""
+
 
 def generate_sketch_from_bytes(image_bytes: bytes) -> str:
-    # Replicate needs a file object, so we'll use a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp_file:
-        tmp_file.write(image_bytes)
-        tmp_file.flush()
-        tmp_file_path = tmp_file.name
-    
-    try:
-        # Open the file for Replicate - pass file object directly
-        with open(tmp_file_path, 'rb') as f:
-            output = replicate.run(
-                "fofr/sdxl-multi-controlnet-lora:89eb212b3d1366a83e949c12a4b45dfe6b6b313b594cb8268e864931ac9ffb16",
-                input={
-                    "image": f,
-                    "control_type": "lineart",
-                    "prompt": PROMPT,
-                    "negative_prompt": NEGATIVE_PROMPT,
-                    "style_strength": 0.9,  # Higher to enforce the rough style
-                    "guidance_scale": 3,  # Lower to allow more variation/roughness
-                    "safety_tolerance": 2,  # Try to reduce NSFW filtering (0-6, higher = less strict)
-                },
-            )
-    except ModelError as e:
-        # Handle NSFW detection or other model errors
-        error_msg = str(e)
-        if "NSFW" in error_msg:
-            raise ValueError(
-                "The image was flagged by content moderation. "
-                "This can happen with certain images. Please try a different image or try again."
-            )
-        raise
-    finally:
-        # Clean up temporary file
-        os.unlink(tmp_file_path)
-    if isinstance(output, list) and output:
-        # Return the last item (final output), or first if only one item
-        result = output[-1] if len(output) > 1 else output[0]
-        # Extract URL if it's a FileOutput object, otherwise use as-is
-        if hasattr(result, 'url'):
-            url = result.url
-        else:
-            url = str(result)
-        
-        # Force grayscale conversion by downloading, converting, and returning as data URL
-        try:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            img = Image.open(io.BytesIO(response.content))
-            
-            # Convert to grayscale if it's not already
-            if img.mode != 'L':
-                img = img.convert('L')
-            
-            # Convert to bytes
-            img_bytes = io.BytesIO()
-            img.save(img_bytes, format='PNG')
-            img_bytes.seek(0)
-            
-            # Convert to base64 data URL
-            img_b64 = base64.b64encode(img_bytes.read()).decode('utf-8')
-            return f"data:image/png;base64,{img_b64}"
-        except Exception as e:
-            # If conversion fails, return original URL
-            # Log the error but don't fail completely
-            print(f"Warning: Could not convert to grayscale: {e}")
-            return url
-    
-    raise RuntimeError(f"Unexpected Replicate output: {output}")
+    """
+    Image-to-image using GPT-Image-1 via raw REST API.
+    Returns a data URL.
+    """
 
+    if not OPENAI_API_KEY:
+        raise RuntimeError("OPENAI_API_KEY not set")
+
+    url = "https://api.openai.com/v1/images/edits"
+
+    # Use multipart/form-data as required by the API
+    files = {
+        "image": ("image.png", image_bytes, "image/png")
+    }
+    
+    data = {
+        "model": "gpt-image-1",
+        "prompt": SKETCH_USER_PROMPT,
+        "size": "1024x1024"
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}"
+        # Don't set Content-Type - requests will set it automatically for multipart
+    }
+
+    response = requests.post(url, headers=headers, files=files, data=data)
+
+    if response.status_code != 200:
+        error_text = response.text
+        # Provide helpful error messages for common issues
+        if response.status_code == 403:
+            try:
+                error_data = response.json()
+                if "gpt-image-1" in error_text and "verified" in error_text.lower():
+                    raise RuntimeError(
+                        "Your OpenAI organization needs to be verified to use gpt-image-1. "
+                        "Please visit https://platform.openai.com/settings/organization/general "
+                        "and click 'Verify Organization'. Access may take up to 15 minutes to propagate."
+                    )
+            except (ValueError, KeyError):
+                pass
+        
+        raise RuntimeError(
+            f"Image API failed [{response.status_code}]: {error_text}"
+        )
+
+    response_data = response.json()
+
+    # Extract image - check for both URL and base64 formats
+    image_data = response_data["data"][0]
+    
+    if "url" in image_data:
+        # Response contains URL - download and convert to base64
+        image_url = image_data["url"]
+        img_response = requests.get(image_url)
+        img_response.raise_for_status()
+        b64_out = base64.b64encode(img_response.content).decode("utf-8")
+    elif "b64_json" in image_data:
+        # Response contains base64 directly
+        b64_out = image_data["b64_json"]
+    else:
+        # Unexpected response format
+        raise RuntimeError(
+            f"Unexpected API response format. Expected 'url' or 'b64_json' in response. "
+            f"Got: {list(image_data.keys())}"
+        )
+    
+    return f"data:image/png;base64,{b64_out}"
