@@ -16,9 +16,11 @@ try:
             input={
                 "image": f,
                 "control_type": "lineart",
-                "prompt": "loose and childish composite sketch, rough lineart, uneven pencil strokes, simplified facial geometry, black and white pencil ",
+                "prompt": "black and white pencil sketch, monochrome grayscale, rough amateur police composite sketch, uneven pencil lines, basic shading, simplified features, witness drawing style, forensic composite, black and white only, no color",
+                "negative_prompt": "color, colorful, colored, clean lines, smooth shading, photorealistic, professional, detailed, perfect proportions, polished, refined, artistic, vibrant colors, color palette",
+                "guidance_scale": 3,
               
-                "style_strength": 0.7,
+                "style_strength": 0.9,
                 "safety_tolerance": 2,  # Try to reduce NSFW filtering (0-6, higher = less strict)
             },
         )

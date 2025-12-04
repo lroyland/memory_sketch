@@ -1,14 +1,16 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables BEFORE importing services
+load_dotenv()
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
 
 from services.images import generate_sketch_from_bytes
 from services.backstories import generate_backstory_from_bytes
-
-load_dotenv()
 
 app = FastAPI()
 
