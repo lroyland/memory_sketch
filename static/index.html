@@ -1,72 +1,376 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Memory Sketch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 1rem; max-width: 480px; margin: 0 auto; }
-    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
-    p { margin-bottom: 0.75rem; }
-    .btn { padding: 0.75rem 1rem; border-radius: 999px; border: none; background: #111; color: #fff; width: 100%; font-size: 1rem; }
-    .card { margin-top: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1px solid #ddd; }
-    img { max-width: 100%; border-radius: 0.75rem; display: block; margin-bottom: 0.5rem; }
-    #status { font-size: 0.95rem; }
+    :root {
+      --bg: #f4f4f5;
+      --card-bg: #ffffff;
+      --accent: #111827;
+      --accent-soft: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --error: #b91c1c;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #e5e7eb 0, #f9fafb 50%, #e5e7eb 100%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 480px;
+      padding: 1.25rem;
+      margin: auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.1rem;
+    }
+
+    .field-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.9rem;
+    }
+
+    input[type="file"] {
+      flex: 1;
+      font-size: 0.85rem;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 0.75rem 1rem;
+      font-size: 0.98rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--accent);
+      color: #f9fafb;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
+    }
+
+    .btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+      box-shadow: none;
+      transform: translateY(0);
+    }
+
+    .btn:not(:disabled):active {
+      transform: translateY(1px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+    }
+
+    .status {
+      margin-top: 0.9rem;
+      border-radius: var(--radius-lg);
+      padding: 0.7rem 0.9rem;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status.loading {
+      display: flex;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .status.error {
+      display: flex;
+      background: #fef2f2;
+      color: var(--error);
+    }
+
+    .status.ok {
+      display: flex;
+      background: #ecfdf3;
+      color: #15803d;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid #bfdbfe;
+      border-top-color: #1d4ed8;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .result-card {
+      margin-top: 1rem;
+      padding: 0.9rem;
+      border-radius: var(--radius-lg);
+      background: var(--accent-soft);
+      display: none;
+    }
+
+    .result-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .result-layout {
+      display: flex;
+      gap: 0.75rem;
+      flex-direction: column;
+    }
+
+    .result-layout img {
+      width: 100%;
+      border-radius: 14px;
+      display: block;
+      background: #e5e7eb;
+    }
+
+    .backstory {
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--text-main);
+      white-space: pre-wrap;
+    }
+
+    .footnote {
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @media (min-width: 640px) {
+      .card {
+        padding: 1.75rem 1.75rem 1.4rem;
+      }
+      .result-layout {
+        flex-direction: row;
+      }
+      .result-layout img {
+        max-width: 52%;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <h1>Memory Sketch</h1>
-  <p>Upload a selfie and we’ll generate a rough sketch and a mistaken backstory.</p>
+  <div class="wrapper">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;">
+        <div>
+          <h1>
+            Memory Sketch
+            <span class="badge">Beta</span>
+          </h1>
+          <div class="subtitle">
+            Upload a selfie and we’ll generate a rough sketch and a mistaken backstory.
+          </div>
+        </div>
+      </div>
 
-  <form id="sketchForm">
-    <input type="file" id="fileInput" accept="image/*" required>
-    <button type="submit" class="btn">Generate</button>
-  </form>
+      <form id="sketchForm">
+        <div class="field-label">Upload a photo</div>
+        <div class="file-row">
+          <input type="file" id="fileInput" accept="image/*" required>
+        </div>
+        <div class="hint">
+          For best results, use a clear front-facing photo with one person in frame.
+        </div>
 
-  <div id="status" class="card" style="display:none;"></div>
+        <button type="submit" class="btn" id="submitBtn">
+          <span id="btnLabel">Generate sketch & backstory</span>
+        </button>
+      </form>
 
-  <div id="result" class="card" style="display:none;">
-    <img id="sketchImage" alt="Sketch result">
-    <p id="backstoryText"></p>
+      <div id="status" class="status">
+        <!-- spinner & text inserted via JS -->
+      </div>
+
+      <div id="result" class="result-card">
+        <div class="result-header">Result</div>
+        <div class="result-layout">
+          <img id="sketchImage" alt="Sketch result">
+          <div class="backstory" id="backstoryText"></div>
+        </div>
+      </div>
+
+      <div class="footnote">
+        This is an experimental art demo. Sketches and stories are intentionally inaccurate.
+      </div>
+    </div>
   </div>
 
   <script>
     const form = document.getElementById('sketchForm');
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnLabel = document.getElementById('btnLabel');
+
     const statusEl = document.getElementById('status');
     const resultEl = document.getElementById('result');
     const sketchImg = document.getElementById('sketchImage');
     const backstoryEl = document.getElementById('backstoryText');
 
+    function setStatus(mode, message) {
+      // mode: "idle" | "loading" | "error" | "ok"
+      statusEl.className = 'status'; // reset
+
+      if (mode === 'idle') {
+        statusEl.style.display = 'none';
+        return;
+      }
+
+      if (mode === 'loading') {
+        statusEl.classList.add('loading');
+        statusEl.innerHTML = '<div class="spinner"></div><div>' + message + '</div>';
+        statusEl.style.display = 'flex';
+      } else if (mode === 'error') {
+        statusEl.classList.add('error');
+        statusEl.textContent = message;
+        statusEl.style.display = 'flex';
+      } else if (mode === 'ok') {
+        statusEl.classList.add('ok');
+        statusEl.textContent = message;
+        statusEl.style.display = 'flex';
+      }
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        submitBtn.disabled = true;
+        btnLabel.textContent = 'Generating…';
+      } else {
+        submitBtn.disabled = false;
+        btnLabel.textContent = 'Generate sketch & backstory';
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fileInput = document.getElementById('fileInput');
-      if (!fileInput.files[0]) return;
 
-      statusEl.style.display = 'block';
-      statusEl.textContent = 'The artist is sketching you from memory...';
+      if (!fileInput.files || !fileInput.files[0]) {
+        setStatus('error', 'Please choose an image first.');
+        return;
+      }
+
+      setLoading(true);
+      setStatus('loading', 'The sketch artist is working from memory…');
       resultEl.style.display = 'none';
 
       const formData = new FormData();
       formData.append('file', fileInput.files[0]);
 
       try {
-        const res = await fetch('/memory-sketch', {  // relative to same server
+        const res = await fetch('/memory-sketch', {
           method: 'POST',
           body: formData
         });
 
-        if (!res.ok) {
-          throw new Error('Server error: ' + res.status);
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          // ignore JSON parse errors for non-JSON responses
         }
 
-        const data = await res.json();
+        if (!res.ok) {
+          const msg = data && data.detail
+            ? data.detail
+            : `Server error: ${res.status}`;
+          throw new Error(msg);
+        }
+
+        if (!data || !data.sketch_url || !data.backstory) {
+          throw new Error('Unexpected response format from server.');
+        }
+
         sketchImg.src = data.sketch_url;
         backstoryEl.textContent = data.backstory;
 
-        statusEl.style.display = 'none';
         resultEl.style.display = 'block';
+        setStatus('ok', 'Done. Here is your memory sketch.');
       } catch (err) {
-        statusEl.textContent = 'Error: ' + err.message;
+        console.error(err);
+        setStatus('error', err.message || 'Something went wrong.');
+        resultEl.style.display = 'none';
+      } finally {
+        setLoading(false);
       }
     });
   </script>
