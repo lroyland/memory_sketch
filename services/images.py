@@ -28,15 +28,15 @@ Style requirements:
 - Extremely simple shapes and thick, clumsy linework
 - Many visible pencil strokes and overlapping lines — rough shading, repeated attempts, sketchy hair texture
 - Very uneven, mismatched eyes and facial features (too close, one bigger, wrong alignment)
-- Exaggerated cartoon-like mouth and jaw — big grin or stretched proportions
-- Distorted, unnatural head shape (lopsided, elongated, crooked)
+- Mouth and jaw should be simple and neutral — avoid exaggerated grins or overly expressive features
+- PRIMARY FOCUS: Distorted, twisted, unnatural head shape — lopsided, elongated, crooked, asymmetrical, warped, or contorted. The head shape should be the most noticeable distortion.
 - Child-like, sincere, unskilled — but more detailed than a typical kid drawing
-- Expression can be smiley, confused, or surprised, but never sinister, moody, or dark
+- Expression should be neutral or slightly confused — avoid overly smiley or happy expressions
 - Plain white background, no extra elements
 
 
 
-Focus: It should still feel naive and crude, but with more pencil marks, more shading attempts, more effort that still went wrong.
+Focus: The head shape distortion should be the most prominent feature. It should still feel naive and crude, but with more pencil marks, more shading attempts, more effort that still went wrong. Prioritize unusual, twisted head shapes over facial expressions.
 """
 
 def build_prompt(system_prompt: str, user_text: str) -> str:
