@@ -1,14 +1,14 @@
 import os
 import base64
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 
-def generate_backstory_from_bytes(image_bytes: bytes) -> str:
+async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
     """
     Generate a second-person character profile (700-1000 words) that starts grounded
     and gradually spirals into absurdity, based on the person in the image.
@@ -110,7 +110,7 @@ def generate_backstory_from_bytes(image_bytes: bytes) -> str:
         "- Treat everything as fictional, even if the image shows a real person.\n"
     )
 
-    response = client.chat.completions.create(
+    response = await client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": system_prompt},

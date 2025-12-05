@@ -1,4 +1,5 @@
 import os
+import asyncio
 from dotenv import load_dotenv
 
 # Load environment variables BEFORE importing services
@@ -39,8 +40,11 @@ def health():
 async def memory_sketch(file: UploadFile = File(...)):
     image_bytes = await file.read()
 
-    sketch_url = generate_sketch_from_bytes(image_bytes)
-    backstory = generate_backstory_from_bytes(image_bytes)
+    # Run both API calls in parallel for faster response
+    sketch_url, backstory = await asyncio.gather(
+        generate_sketch_from_bytes(image_bytes),
+        generate_backstory_from_bytes(image_bytes)
+    )
 
     return {
         "sketch_url": sketch_url,

@@ -1,7 +1,7 @@
 import os
 import base64
 import json
-import requests
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,9 +43,9 @@ def build_prompt(system_prompt: str, user_text: str) -> str:
     return f"{system_prompt.strip()}\n\n{user_text.strip()}"
 
 
-def generate_sketch_from_bytes(image_bytes: bytes) -> str:
+async def generate_sketch_from_bytes(image_bytes: bytes) -> str:
     """
-    Image-to-image using GPT-Image-1 via raw REST API.
+    Image-to-image using GPT-Image-1 via raw REST API (async).
     Returns a data URL.
     """
 
@@ -70,23 +70,51 @@ def generate_sketch_from_bytes(image_bytes: bytes) -> str:
         "Authorization": f"Bearer {OPENAI_API_KEY}"
     }
 
-    response = requests.post(url, headers=headers, files=files, data=data)
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(url, headers=headers, files=files, data=data)
 
-    if response.status_code != 200:
-        raise RuntimeError(
-            f"Image API failed [{response.status_code}]: {response.text}"
-        )
+        if response.status_code != 200:
+            error_text = response.text
+            if response.status_code == 403:
+                try:
+                    error_data = response.json()
+                    if "gpt-image-1" in error_text and "verified" in error_text.lower():
+                        raise RuntimeError(
+                            "Your OpenAI organization needs to be verified to use gpt-image-1. "
+                            "Please visit https://platform.openai.com/settings/organization/general "
+                            "and click 'Verify Organization'. Access may take up to 15 minutes to propagate."
+                        )
+                except (ValueError, KeyError):
+                    pass
 
-    response_data = response.json()
-    image_data = response_data["data"][0]
+            raise RuntimeError(
+                f"Image API failed [{response.status_code}]: {error_text}"
+            )
 
-    if "url" in image_data:
-        img = requests.get(image_data["url"])
-        img.raise_for_status()
-        b64_out = base64.b64encode(img.content).decode("utf-8")
-    elif "b64_json" in image_data:
-        b64_out = image_data["b64_json"]
-    else:
-        raise RuntimeError("Unexpected API response format.")
+        response_data = response.json()
+        image_data = response_data["data"][0]
+
+        if "url" in image_data:
+            img_response = await client.get(image_data["url"])
+            img_response.raise_for_status()
+            b64_out = base64.b64encode(img_response.content).decode("utf-8")
+        elif "b64_json" in image_data:
+            b64_out = image_data["b64_json"]
+        else:
+            raise RuntimeError("Unexpected API response format.")
 
     return f"data:image/png;base64,{b64_out}"
+
+
+# Keep synchronous version for backwards compatibility if needed
+def generate_sketch_from_bytes_sync(image_bytes: bytes) -> str:
+    """
+    Synchronous version for backwards compatibility.
+    """
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop.run_until_complete(generate_sketch_from_bytes(image_bytes))
