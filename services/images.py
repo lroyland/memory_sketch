@@ -17,15 +17,23 @@ archetype, character arc, or any meta-writing terms.
 """
 
 USER_TEXT = """
-Create a black-and-white pencil police composite sketch based on the input photo. Distort the face in the photo to make it look 
-assymetrical. Make the face slightly deformed. Have a wavy distortion on the shape of the face with slight deformity.
-Use the style of an amateur 1980s police sketch but drawn by a child: slightly inaccurate proportions,
-uneven pencil lines, simplified features, and rough shading. The eyes should be
-a bit mismatched, and the hair rendered with loose,
-imprecise strokes. Keep the likeness recognizable but clearly off. No background—
-just a plain white forensic-sketch sheet. Make it look like a real composite 
-someone might have drawn quickly during an interview. Make it look like a child trying to draw it.
+Create a black-and-white pencil portrait of a fictional person loosely based on the input photo, but not posed the same. It should look like a police sketch portrait drawn by a younger child with very poor observational ability.
 
+
+
+Style requirements:
+- Extremely simple shapes and thick, clumsy linework
+- Many visible pencil strokes and overlapping lines — rough shading, repeated attempts, sketchy hair texture
+- Very uneven, mismatched eyes and facial features (too close, one bigger, wrong alignment)
+- Exaggerated cartoon-like mouth and jaw — big grin or stretched proportions
+- Distorted, unnatural head shape (lopsided, elongated, crooked)
+- Child-like, sincere, unskilled — but more detailed than a typical kid drawing
+- Expression can be smiley, confused, or surprised, but never sinister, moody, or dark
+- Plain white background, no extra elements
+
+
+
+Focus: It should still feel naive and crude, but with more pencil marks, more shading attempts, more effort that still went wrong.
 """
 
 def build_prompt(system_prompt: str, user_text: str) -> str:
