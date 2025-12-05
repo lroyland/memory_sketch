@@ -677,7 +677,7 @@
     function setContinueLoading(isLoading) {
       if (isLoading) {
         continueBtn.disabled = true;
-        continueLabel.textContent = 'Working from memory…';
+        continueLabel.textContent = 'One Second...';
       } else {
         continueBtn.disabled = false;
         continueLabel.textContent = 'Continue';
@@ -775,7 +775,7 @@
         return;
       }
 
-      setLandingStatus('loading', 'The sketch artist is working from memory…');
+      setLandingStatus('loading', 'Searching...');
       setContinueLoading(true);
 
       const formData = new FormData();
