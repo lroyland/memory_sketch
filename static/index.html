@@ -184,6 +184,13 @@
       margin-top: 0.6rem;
       border-radius: 14px;
       overflow: hidden;
+      min-height: 200px;
+    }
+
+    .substack-embed iframe {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 14px;
     }
 
     .status {
@@ -427,22 +434,22 @@
             Health and cultural breakdowns. Creative field notes.
           </div>
 
-          <!-- simple email field + label; actual subscribe via embedded Substack form below -->
+          <!-- simple email field + label; actual subscribe via embedded Substack form below 
           <div class="small-input-row">
             <input type="email" id="fakeSubstackEmail" placeholder="you@example.com">
             <button type="button" class="btn btn-secondary" id="fakeSubstackBtn">
               Subscribe
             </button>
           </div>
-          <div id="fakeSubstackStatus" class="disclaimer" style="margin-top:0.3rem;"></div>
+          <div id="fakeSubstackStatus" class="disclaimer" style="margin-top:0.3rem;"></div>-->
 
-          <!-- Real Substack embed (replace src with official embed code if provided) -->
+          <!-- Substack embed - increased height to prevent scrollbar -->
           <div class="substack-embed">
             <iframe
               src="https://shimojimascrapbook.substack.com/embed"
               width="100%"
-              height="120"
-              style="border:1px solid #e5e7eb; background:#f9fafb;"
+              height="320"
+              style="border:1px solid #e5e7eb; background:#f9fafb; border-radius: 14px;"
               frameborder="0"
               scrolling="no">
             </iframe>
@@ -459,7 +466,7 @@
         </div>
 
         <div class="footer-note">
-          This is an experimental art project. Portraits and stories are intentionally imperfect.
+          <!--This is an experimental art project. Portraits and stories are intentionally imperfect.-->
         </div>
       </div>
 

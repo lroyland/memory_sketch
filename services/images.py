@@ -17,7 +17,8 @@ archetype, character arc, or any meta-writing terms.
 """
 
 USER_TEXT = """
-Create a black-and-white pencil police composite sketch based on the input photo.
+Create a black-and-white pencil police composite sketch based on the input photo. Distort the face in the photo to make it look 
+assymetrical. Make the face slightly deformed. Have a wavy distortion on the shape of the face with slight deformity.
 Use the style of an amateur 1980s police sketch: slightly inaccurate proportions,
 uneven pencil lines, simplified features, and rough shading. The eyes should be
 a bit mismatched, and the hair rendered with loose,
