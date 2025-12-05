@@ -95,11 +95,9 @@
     }
 
     .section-heading {
-      font-family: "Libre Bodoni", serif;
-      font-size: clamp(28px, 8vw, 36px);
-      font-weight: 400;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 14px;
+      line-height: 1.45;
       margin-bottom: 0.35rem;
     }
 
@@ -324,9 +322,13 @@
     }
 
     .info-logo {
-      font-size: 1.15rem;
-      font-weight: 700;
       margin-bottom: 0.1rem;
+    }
+
+    .info-logo img {
+      height: 20px;
+      width: auto;
+      display: block;
     }
 
     .info-subtitle {
@@ -568,7 +570,9 @@
       <!-- PAGE 1A: contact-only info -->
       <div id="view-info" class="hidden">
         <div class="info-block">
-          <div class="info-logo">BY SHIMO</div>
+          <div class="info-logo">
+            <img src="/static/logo.png" alt="BY SHIMO">
+          </div>
           <div class="info-subtitle">Immersive &amp; narrative studio</div>
 
           <div class="info-link-list">
@@ -629,7 +633,7 @@
         </div>
 
         <div class="result-subtext">
-          Thank you for meeting. I have you down (I remember you), but holler back if any minor corrections needed.
+          Thank you for meeting. I have you down, but holler back if any minor corrections needed.
         </div>
 
         <div class="email-inline">
@@ -742,7 +746,7 @@
     function setContinueLoading(isLoading) {
       if (isLoading) {
         continueBtn.disabled = true;
-        continueLabel.textContent = 'One Second...';
+        continueLabel.textContent = 'One minute...';
       } else {
         continueBtn.disabled = false;
         continueLabel.textContent = 'Continue';
@@ -848,7 +852,7 @@
         return;
       }
 
-      setLandingStatus('loading', 'Searching...');
+      setLandingStatus('loading', 'Searching... Hold on...');
       setContinueLoading(true);
 
       const formData = new FormData();
