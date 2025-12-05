@@ -1,11 +1,14 @@
 import os
 import base64
+import time
+import logging
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+logger = logging.getLogger(__name__)
 
 
 async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
@@ -13,11 +16,17 @@ async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
     Generate a second-person character profile (700-1000 words) that starts grounded
     and gradually spirals into absurdity, based on the person in the image.
     """
+    func_start = time.time()
+    logger.info("[BACKSTORY] Starting backstory generation...")
+    
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not set")
 
+    encode_start = time.time()
     img_b64 = base64.b64encode(image_bytes).decode("utf-8")
     image_url = f"data:image/png;base64,{img_b64}"
+    encode_time = time.time() - encode_start
+    logger.info(f"[BACKSTORY] Base64 encoding: {encode_time:.2f}s")
 
     system_prompt = (
         "You are an assistant that writes fictional second-person character profiles.\n\n"
@@ -112,6 +121,7 @@ async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
 
 
 
+    api_start = time.time()
     response = await client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -124,12 +134,19 @@ async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
                 ],
             },
         ],
-        max_tokens=3000,
+        max_tokens=2000,  # Reduced from 3000 (target is 700-1000 words ≈ ~1300 tokens)
         temperature=0.8,
     )
+    api_time = time.time() - api_start
+    logger.info(f"[BACKSTORY] API call (gpt-4o): {api_time:.2f}s")
 
     content = response.choices[0].message.content
     # Some SDK versions return a list of segments; normalize to string
     if isinstance(content, list):
-        return "".join(part.get("text", "") for part in content)
-    return content
+        result = "".join(part.get("text", "") for part in content)
+    else:
+        result = content
+    
+    total_time = time.time() - func_start
+    logger.info(f"[BACKSTORY] Total backstory generation: {total_time:.2f}s")
+    return result

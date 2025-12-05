@@ -1,12 +1,15 @@
 import os
 import base64
 import json
+import time
+import logging
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+logger = logging.getLogger(__name__)
 
 # ----- PROMPTS -----
 
@@ -48,6 +51,8 @@ async def generate_sketch_from_bytes(image_bytes: bytes) -> str:
     Image-to-image using GPT-Image-1 via raw REST API (async).
     Returns a data URL.
     """
+    func_start = time.time()
+    logger.info("[IMAGE] Starting sketch generation...")
 
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY not set")
@@ -71,7 +76,10 @@ async def generate_sketch_from_bytes(image_bytes: bytes) -> str:
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
+        api_start = time.time()
         response = await client.post(url, headers=headers, files=files, data=data)
+        api_time = time.time() - api_start
+        logger.info(f"[IMAGE] API POST request: {api_time:.2f}s")
 
         if response.status_code != 200:
             error_text = response.text
@@ -95,14 +103,24 @@ async def generate_sketch_from_bytes(image_bytes: bytes) -> str:
         image_data = response_data["data"][0]
 
         if "url" in image_data:
+            download_start = time.time()
             img_response = await client.get(image_data["url"])
             img_response.raise_for_status()
+            download_time = time.time() - download_start
+            logger.info(f"[IMAGE] Image download: {download_time:.2f}s")
+            
+            encode_start = time.time()
             b64_out = base64.b64encode(img_response.content).decode("utf-8")
+            encode_time = time.time() - encode_start
+            logger.info(f"[IMAGE] Base64 encoding: {encode_time:.2f}s")
         elif "b64_json" in image_data:
             b64_out = image_data["b64_json"]
+            logger.info("[IMAGE] Received base64 directly (no download needed)")
         else:
             raise RuntimeError("Unexpected API response format.")
 
+    total_time = time.time() - func_start
+    logger.info(f"[IMAGE] Total sketch generation: {total_time:.2f}s")
     return f"data:image/png;base64,{b64_out}"
 
 
