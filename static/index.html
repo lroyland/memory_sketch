@@ -552,6 +552,8 @@
             <!-- Supascribe Script -->
             <script src="https://js.supascribe.com/v1/loader/y0wZO4MiuIglkbCDoujpgP0MARg2.js" async></script>
           </div>
+          <!-- Status message for subscription -->
+          <div id="supascribeStatus" class="disclaimer" style="margin-top:0.6rem;display:none;"></div>
         </div>
 
         <!-- Section 3 (less important) -->
@@ -784,6 +786,55 @@
       setContinueLoading(false);
       showView('landing');
     });
+
+    // Supascribe subscription feedback
+    const supascribeStatus = document.getElementById('supascribeStatus');
+    const supascribeEmbed = document.querySelector('[data-supascribe-embed-id]');
+    
+    if (supascribeEmbed && supascribeStatus) {
+      // Listen for Supascribe events if available
+      window.addEventListener('supascribe:subscribe', (e) => {
+        supascribeStatus.textContent = 'Subscribed! Check your email to confirm.';
+        supascribeStatus.style.color = '#16a34a';
+        supascribeStatus.style.display = 'block';
+      });
+
+      window.addEventListener('supascribe:error', (e) => {
+        supascribeStatus.textContent = 'Something went wrong. Please try again.';
+        supascribeStatus.style.color = '#b91c1c';
+        supascribeStatus.style.display = 'block';
+      });
+
+      // Also use MutationObserver to detect form state changes
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList' || mutation.type === 'attributes') {
+            const embedContainer = mutation.target;
+            // Look for success indicators in the embed
+            const successMsg = embedContainer.querySelector('[class*="success"], [class*="subscribed"], [data-success]');
+            const errorMsg = embedContainer.querySelector('[class*="error"], [data-error]');
+            
+            if (successMsg && successMsg.textContent) {
+              supascribeStatus.textContent = 'Subscribed! Check your email to confirm.';
+              supascribeStatus.style.color = '#16a34a';
+              supascribeStatus.style.display = 'block';
+            } else if (errorMsg && errorMsg.textContent) {
+              supascribeStatus.textContent = 'Something went wrong. Please try again.';
+              supascribeStatus.style.color = '#b91c1c';
+              supascribeStatus.style.display = 'block';
+            }
+          }
+        });
+      });
+
+      // Start observing the embed container
+      observer.observe(supascribeEmbed, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'data-state']
+      });
+    }
 
     async function createCombinedImage(sketchSrc, story) {
       return new Promise((resolve, reject) => {
