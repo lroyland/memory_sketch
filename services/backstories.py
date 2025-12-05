@@ -110,6 +110,8 @@ async def generate_backstory_from_bytes(image_bytes: bytes) -> str:
         "- Treat everything as fictional, even if the image shows a real person.\n"
     )
 
+
+
     response = await client.chat.completions.create(
         model="gpt-4o",
         messages=[

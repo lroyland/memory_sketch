@@ -747,7 +747,7 @@
     function setContinueLoading(isLoading) {
       if (isLoading) {
         continueBtn.disabled = true;
-        continueLabel.textContent = 'One minute...';
+        continueLabel.textContent = 'Searching...';
       } else {
         continueBtn.disabled = false;
         continueLabel.textContent = 'Continue';
@@ -853,7 +853,7 @@
         return;
       }
 
-      setLandingStatus('loading', 'Searching... Hold on...');
+      setLandingStatus('loading', 'This may take a minute...');
       setContinueLoading(true);
 
       const formData = new FormData();
