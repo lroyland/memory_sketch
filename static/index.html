@@ -112,13 +112,14 @@
     input[type="file"] {
       flex: 1;
       font-size: 0.95rem;
-      padding: 0.85rem 1rem;
+      padding: 0.75rem 1rem;
       border: 1px solid #d1d5db;
       border-radius: 12px;
       background-color: #f9fafb;
       color: #374151;
       cursor: pointer;
       transition: all 0.2s ease;
+      min-height: 48px;
     }
 
     input[type="file"]:hover {
@@ -457,7 +458,7 @@
             <input type="file" id="fileInput" accept="image/*" required>
           </div>
 
-          <button class="btn" id="continueBtn">
+          <button type="button" class="btn" id="continueBtn">
             <span id="continueLabel">Continue</span>
           </button>
 
@@ -684,17 +685,19 @@
     }
 
     // Fake inline Substack status (real subscription handled by iframe form)
-    fakeSubstackBtn.addEventListener('click', () => {
-      const v = fakeSubstackEmail.value.trim();
-      if (!v) {
-        fakeSubstackStatus.textContent = 'Enter your email, then hit subscribe.';
-        fakeSubstackStatus.style.color = '#b91c1c';
-        return;
-      }
-      fakeSubstackStatus.textContent = 'Subscribed ✓ (You may need to confirm via Substack email.)';
-      fakeSubstackStatus.style.color = '#16a34a';
-      fakeSubstackEmail.value = '';
-    });
+    if (fakeSubstackBtn && fakeSubstackEmail && fakeSubstackStatus) {
+      fakeSubstackBtn.addEventListener('click', () => {
+        const v = fakeSubstackEmail.value.trim();
+        if (!v) {
+          fakeSubstackStatus.textContent = 'Enter your email, then hit subscribe.';
+          fakeSubstackStatus.style.color = '#b91c1c';
+          return;
+        }
+        fakeSubstackStatus.textContent = 'Subscribed ✓ (You may need to confirm via Substack email.)';
+        fakeSubstackStatus.style.color = '#16a34a';
+        fakeSubstackEmail.value = '';
+      });
+    }
 
     infoBtn.addEventListener('click', () => {
       showView('info');
@@ -766,7 +769,8 @@
     }
 
     continueBtn.addEventListener('click', async () => {
-      if (!fileInput.files || !fileInput.files[0]) {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
         setLandingStatus('error', 'Please upload a photo first.');
         return;
       }
