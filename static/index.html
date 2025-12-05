@@ -560,6 +560,11 @@
           </span>
         </div>
 
+        <div class="back-link" id="backFromResult" style="margin-bottom: 1rem;">
+          <span class="icon">←</span>
+          <span>Upload another photo</span>
+        </div>
+
         <div class="result-hero">
           Ah, right! I found you in my system.
         </div>
@@ -632,6 +637,7 @@
 
     const infoBtn = document.getElementById('infoBtn');
     const backFromInfo = document.getElementById('backFromInfo');
+    const backFromResult = document.getElementById('backFromResult');
 
     const portraitImg = document.getElementById('portraitImage');
     const storyText = document.getElementById('storyText');
@@ -702,6 +708,14 @@
     });
 
     backFromInfo.addEventListener('click', () => {
+      showView('landing');
+    });
+
+    backFromResult.addEventListener('click', () => {
+      // Reset file input and status when going back
+      fileInput.value = '';
+      setLandingStatus('idle');
+      setContinueLoading(false);
       showView('landing');
     });
 
